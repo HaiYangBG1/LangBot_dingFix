@@ -184,3 +184,57 @@ elif incoming_message.message_type == 'audio':
 3. 查看日志 `data/logs/langbot-*.log`，搜索 `DingTalk audio raw content`
 4. 确认日志中的 JSON 包含 `recognition` 字段且有转写文字
 5. 确认机器人正常回复（而非 `Request failed`）
+
+---
+
+## 升级 LangBot 并恢复补丁的完整流程
+
+当 LangBot 官方发布新版本后，按以下步骤操作：
+
+### Step 1：拉取官方最新代码
+
+```bash
+cd /Users/zhouhaiyang/Downloads/Antigravity/langbot/LangBot
+
+# 确保 origin 指向官方仓库
+git remote -v
+# origin  https://github.com/langbot-app/LangBot.git (fetch)
+# fork    https://github.com/HaiYangBG1/LangBot_dingFix.git (push)
+
+# 暂存你的本地修改（如果有未提交的）
+git stash
+
+# 拉取官方最新版本
+git pull origin master
+```
+
+### Step 2：检查是否还需要打补丁
+
+打开本文件（`CUSTOM_PATCHES.md`），找到对应 Patch 的 **「第一步：检查当前版本是否已原生支持」**，按检查点逐一验证：
+
+- **两个检查点都通过** → 官方已修复，跳过该补丁 🎉
+- **任一未通过** → 继续 Step 3 应用补丁
+
+### Step 3：按 md 中的 diff 手动修改代码
+
+根据本文件中「第二步：应用补丁」的**修改前/修改后**对照代码，手动修改对应文件。
+
+### Step 4：提交并推送到你的 fork
+
+```bash
+git add -A
+git commit -m "fix: 重新应用钉钉语音 recognition 补丁（基于 vX.X.X）"
+git push fork master
+```
+
+### Step 5：重启 LangBot 并验证
+
+```bash
+# 停掉旧进程
+ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill
+
+# 启动
+.venv/bin/python3 main.py
+```
+
+发一条语音消息到钉钉机器人，确认正常回复即可。
